@@ -1,0 +1,33 @@
+version: '3'
+services:
+  fs:
+    image: krypton-scheduler
+    hostname: ${SCHEDULER}.${DOMAIN}
+    container_name: ${SCHEDULER}.${DOMAIN}
+    networks:
+      backend:
+        aliases:
+          - ${SCHEDULER}.${DOMAIN}
+    ports:
+      - ${SCHEDULER_PORT}:${SCHEDULER_PORT}
+    environment:
+      - GO_DEBUG=${GO_DEBUG}
+      - GRPC_GO_SEVERITY_LEVEL=${GRPC_GO_LOG_SEVERITY_LEVEL}
+      - GRPC_GO_LOG_VERBOSITY_LEVEL=${GRPC_GO_LOG_VERBOSITY_LEVEL}
+      - GRPC_TRACE=${GRPC_TRACE}
+      - SCHEDULER_DB_HOSTS=${DB}.${DOMAIN}
+      - SCHEDULER_DB_PASSWORD=${CASSANDRA_PASSWORD}
+      - SCHEDULER_QUEUE_ENDPOINT=http://${SQS}.${DOMAIN}:${SQS_PORT}
+      - SCHEDULER_MQTT_BROKER_HOSTS=tcp://${HIVEMQ_HOST}.${DOMAIN}:${HIVEMQ_MQTT_PORT}
+      - SCHEDULER_MQTT_BROKER_TYPE="local"
+      - SCHEDULER_DSTS_HOST=${DSTS}.${DOMAIN}
+      - TEST_MODE="enabled"
+      - AWS_ACCESS_KEY_ID="local"
+      - AWS_SECRET_ACCESS_KEY="local"
+      - AWS_REGION=${REGION}
+    env_file:
+      - privateKey.env
+    tty: true
+networks:
+  backend:
+    driver: bridge

@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+option go_package = "github.com/hpinc/krypton-scheduler/protos";
+package krypton.scheduler;
+
+///////////////////////////////////////////////////////////////////////////////
+// DeviceMessage - represents a message sent from device to the scheduler.   //
+///////////////////////////////////////////////////////////////////////////////
+// This message is intended for the device's device management service. The 
+// device needs to send its access token in the message - this access token 
+// includes critical routing information such as the unique ID of the device, 
+// the tenant it belongs to and the management service that is responsible for 
+// managing the device. This routing information is used to route the message 
+// to its corresponding device management service.
+///////////////////////////////////////////////////////////////////////////////
+message DeviceMessage {
+
+  //////////////////////////// Envelope ///////////////////////////////////////
+  // These envelope fields contain routing information for the message. The
+  // mandaatory access token field specifies the service that requested the task 
+  // to be executed by the device, the target device and other information 
+  // identifying the message.
+
+  // Required field
+  // Version information for the device message.
+  uint32 version = 1;
+
+  // Required field
+  // The device access token issued to this device by the DSTS after device
+  // authentication. The token must be valid when the message is received by
+  // the scheduler.
+  string access_token = 2;
+
+  // Optional field
+  // The scheduled task identifier issued by the scheduler for this task.
+  //  - Messages sent by the device to the scheduler in response to a task 
+  //    issued by the device management service must specify the task ID.
+  //  - If the device is sending the message of its own accord and not in the 
+  //    context of a task issued by its device management service, this field is
+  //    not specified.
+  string task_id = 3;
+
+  // Optional field, must be specified if task_id is specified.
+  // The status of the task for which the task response is being sent by the 
+  // device. If the task_id is specified, this field must be specified as well.
+  // Supported values are the following strings:
+  // - complete
+  // - success
+  // - failed
+  // - error
+  string task_status = 4;
+
+  // An identifier assigned to the message sent to the device. This field is not
+  // interpreted by the scheduler in any way and is passed on to the device.
+  string message_id = 5;
+
+  // Required field
+  // The type of message contained within the payload. This is not interpreted
+  // by the scheduler and is meant for consumption by the service initiating the
+  // task request and the target device.
+  string message_type = 6;
+
+  ///////////////////////// end  Envelope /////////////////////////////////////
+
+  ///////////////////////////// Payload ///////////////////////////////////////
+  // Required field
+  // The payload to be delivered to the target service. The payload is opaque
+  // to the scheduler and is not interpreted in any way.
+  bytes payload = 7;
+}

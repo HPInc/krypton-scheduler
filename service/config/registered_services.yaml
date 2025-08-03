@@ -1,0 +1,23 @@
+# Device management services registered with the scheduler.
+registered_services:
+  - name: "HP Cloud Endpoint Manager"
+    service_id: "hpcem"
+    topics:
+      "v1/@cloud/task_responses": "hpcem-task-responses"
+      "v1/@cloud": "hpcem-service-requests"
+
+  - name: "HP Connect Service"
+    service_id: "hpconnect"
+    topics:
+      "v1/@cloud/task_responses": "hpconnect-task-responses"
+      "v1/@cloud": "hpconnect-service-requests"
+
+  # Sample entry
+  # If service_id is not specified, the message is routed to the topic within
+  # the same AWS account.
+  #- name: "New Device Management Service"
+  #  service_id: "newsvc"
+  #  owner_aws_account: "711374552565"
+  #  topics:
+  #    "v1/@cloud/task_responses": "newsvc-task-responses"
+  #    "v1/@cloud": "newsvc-service-requests"

@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+option go_package = "github.com/hpinc/krypton-scheduler/protos";
+package krypton.scheduler;
+
+message CreateScheduledTaskRequest {
+  // Required field
+  // Version information for the task envelope.
+  uint32 version = 1;
+
+  // Required field
+  // Unique identifier of the service requesting the task to be scheduled.
+  string service_id = 2;
+
+  // Required field
+  // The unique identifiers of the devices to which the task needs to be
+  // dispatched.
+  repeated string device_ids = 3;
+
+  // Optional field
+  // The consignment ID is a unique identifier assigned by the requesting service
+  // (service_id) for this task request. After submitting the scheduled task
+  // request to the scheduler, the service can subsequently query for status
+  // updates using this consignment ID.
+  // This consignment ID is also used by the scheduler when logging activities
+  // performed to service the scheduled task request. The consignment ID can be
+  // used for end-to-end correlation and forensics for the request.
+  string consignment_id = 4;
+
+  // Required field
+  // The tenant to which the devices specified in 'device_ids' belongs. All
+  // devices specified in a single TaskRequestEnvelope using the device_ids
+  // field MUST belong to the same tenant.
+  string tenant_id = 5;
+
+  // Optional field
+  // The requested schedule for the task. If not specified, the task will be
+  // scheduled immediately (i.e. 'now').
+  string schedule = 6;
+
+  // An identifier assigned to the message sent to the device. This field is not
+  // interpreted by the scheduler in any way and is passed on to the device. The
+  // device returns this message_id back when responding to the cloud service. 
+  // This allows 'conversations' between the device management service and the
+  // device as a way to keep messages belonging to a logical conversation together.
+  string message_id = 7;
+
+  // Required field
+  // The type of message contained within the payload. This is not interpreted
+  // by the scheduler and is meant for consumption by the service initiating the
+  // task request and the target device.
+  string message_type = 8;
+
+  // Required field
+  // The payload to be delivered to the target device. The payload is opaque
+  // to the scheduler and is not interpreted in any way.
+  bytes payload = 9;
+}
+
+message CreateScheduledTaskResponse {
+  // Version information for the response message.
+  uint32 version = 1;
+
+  // The number of tasks that were scheduled after processing the request.
+  uint32 task_count = 2;
+
+  // The number of errors encountered while processing the request.
+  uint32 error_count = 3;
+
+  // The consignment ID is a unique identifier assigned by the requesting service
+  // (service_id) for this task request. After submitting the scheduled task
+  // request to the scheduler, the service can subsequently query for status
+  // updates using this consignment ID.
+  string consignment_id = 4;
+
+  // The tenant to which the devices specified in 'device_ids' belongs. All
+  // devices specified in a single TaskRequestEnvelope using the device_ids
+  // field MUST belong to the same tenant.
+  string tenant_id = 5;
+
+  // Returns information about the task scheduled for each device specified in
+  // the incoming request. Any devices missing from the original request would
+  // have encountered failures and the error_count field shows the number of
+  // devices for which such errors were encountered.
+  repeated TaskInfo tasks_scheduled = 6;
+}
+
+message TaskInfo {
+  // The unique identifier for the task which was scheduled.
+  string task_id = 1;
+
+  // The unique identifier of the device to which the task is being dispatched.
+  string device_id = 2;
+
+  // The current status of the task
+  string status = 3;
+}

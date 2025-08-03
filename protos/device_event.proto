@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+option go_package = "github.com/hpinc/krypton-scheduler/protos";
+package krypton.scheduler;
+
+// DeviceEvent - defines the structure of an event published by the scheduler into 
+// the input queue of the device management service. This event is published when
+// the scheduler receives a message from the device intended for the management 
+// service.
+message DeviceEvent {
+  // Version information for the device message envelope.
+  uint32 version = 1;
+
+  // Unique identifier of the service that had scheduled the task.
+  string service_id = 2;
+
+  // The unique identifier of the device to which the task was
+  // dispatched.
+  string device_id = 3;
+
+  // The tenant to which the device specified in 'device_id' belongs.
+  string tenant_id = 4;
+
+  // The scheduled task identifier issued by the scheduler service for this task.
+  //  - Messages sent by the service in response to a task issued by the device
+  //    management service must specify the task ID of that task
+  //  - If the device is sending the message of its own accord and not in the 
+  //    context of a task issued by its device management service, this field is
+  //    not specified.
+  string task_id = 5;
+
+  // The consignment ID is a unique identifier assigned by the requesting service
+  // (service_id) for this task request. After submitting the scheduled task
+  // request to the scheduler, the service can subsequently query for status
+  // updates using this consignment ID.
+  // This consignment ID is also used by the scheduler when logging activities
+  // performed to service the scheduled task request. The consignment ID can be
+  // used for end-to-end correlation and forensics for the request.
+  string consignment_id = 6;
+
+  // The status of the task for which the task response is being sent by the 
+  // device. If the task_id is specified, this field must be specified as well.
+  string task_status = 7;
+
+  // An identifier assigned to the message sent to the device. This field is not
+  // interpreted by the scheduler in any way and is passed on to the device. The
+  // device returns this message_id back when responding to the cloud service. 
+  // This allows 'conversations' between the device management service and the
+  // device as a way to keep messages belonging to a logical conversation together.
+  string message_id = 8;
+
+  // The type of message contained within the payload. This is not interpreted
+  // by the scheduler and is meant for consumption by the service initiating the
+  // task request and the target device.
+  string message_type = 9;
+
+  ///////////////////////////// Payload ///////////////////////////////////////
+  // The payload to be delivered to the target service. The payload is opaque
+  // to the scheduler and is not interpreted in any way.
+  bytes payload = 10;
+}

@@ -1,0 +1,58 @@
+## Configuration file for the HP Scheduler service
+
+# Server configuration.
+server:
+  host: "scheduler"
+  rest_port: 9990
+  # Location of the folder where registered service configuration can be found.
+  registered_service_config: "/go/bin/registered_services.yaml" 
+  
+  # Specifies whether to log all incoming REST requests to the debug log.
+  # Note - this value should be set to false in production. Toggle only
+  # for debugging purposes when other avenues have been exhausted.
+  log_rest_requests: false
+
+  # Specifies whether app access tokens are required to invoke the scheduler REST API.
+  # Note - this value must not be set to false in production since it will allow
+  # un-authenticated access to the scheduler REST API.
+  api_authn_enabled: true
+
+# Database configuration. In production, the database password is retrieved from the
+# secret store configured when the service is started up.
+database:
+  keyspace_name: "scheduler"
+  type: "cassandra"         # Type of database - cassandra or aws_keyspaces
+  db_hosts:                 # Location of the database hosts.
+   - "scheduler-db"
+  client_port: 9042         # Port at which database is available.
+  user: "cassandra"         # User account to access the database.
+  schema: "/go/bin/schema"  # Location of schema migration scripts.
+  migrate: true             # Whether to enable database schema migration.
+  debug: true               # Whether to enable debug logging for database calls.
+
+# Queue manager configuration
+queuemgr:
+  region: "us-east-1"
+  watch_delay: 2
+  input_queue: "scheduler_input"       # queue on which scheduler listens for new task requests.
+  dispatch_queue: "scheduler_dispatch" # queue on which scheduler listens for dispatch requests.
+  dcm_queue: "dcm_input"               # queue on which DCM listens for configuration events.
+
+# MQTT configuration settings.
+mqtt:
+  broker_type: "local"      # Type of MQTT broker - aws_iot or local.
+  tls_cert_path: ""         # Path to the root CA cert to be used for TLS connections.
+  keep_alive: 30            # Keep alive period in seconds
+  connect_retry_delay: 10   # Period between connection attempts in seconds.
+  qos: 0                    # Quality of service (QoS) to send messages with.
+  debug: false              # Whether to enable debug logging for MQTT messages.
+  tls_cert_path: ""         # Path to the TLS Root CA certificate used to connect to the broker
+
+# DSTS Server configuration for grpc connections
+dsts:
+  host: "localhost"
+  rpc_port: 7000
+  scheduler_app_id: "bebc5cbf-acc0-431f-8c4e-c582dc2489e2"
+  private_key_env: "SCHEDULER_APP_PRIVATE_KEY_ENV"
+
+test_mode: true

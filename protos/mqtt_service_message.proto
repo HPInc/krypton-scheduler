@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+option go_package = "github.com/hpinc/krypton-scheduler/protos";
+package krypton.scheduler;
+
+///////////////////////////////////////////////////////////////////////////////
+// ServiceMessage - represents a message sent by the scheduler on behalf of  // 
+// the device management service to a device.                                //
+///////////////////////////////////////////////////////////////////////////////
+// This message originates from a request issued by a device management service 
+// to a device managed by it. The message contains routing information such as
+// the unique ID of the device, the tenant it belongs to and the management 
+// service that is responsible for managing the device. This routing information 
+// is used to route the message to the intended device.
+///////////////////////////////////////////////////////////////////////////////
+message ServiceMessage {
+  
+  //////////////////////////// Envelope ///////////////////////////////////////
+  // These envelope fields contain routing information for the message. It 
+  // specifies the service requesting the task to be executed by the device, 
+  // the target device and other information identifying the message.
+
+  // Version information for the service message.
+  uint32 version = 1;
+
+  // Unique identifier of the service requesting the message to be sent to
+  // the device.
+  string service_id = 2;
+
+  // Unique identifier of the device to which the message is being dispatched.
+  string device_id = 3;
+
+  // The unique ID assigned by the scheduler to this task.
+  string task_id = 4;
+
+  // The tenant to which the device specified in 'device_id' belongs.
+  string tenant_id = 5;
+
+  // An identifier assigned to the message sent to the device. This field is not
+  // interpreted by the scheduler in any way and is passed on to the device. The
+  // device returns this message_id back when responding to the cloud service. 
+  // This allows 'conversations' between the device management service and the
+  // device as a way to keep messages belonging to a logical conversation together.
+  string message_id = 6;
+
+  // The type of message contained within the payload. This is not interpreted
+  // by the scheduler and is meant the management service and the target device
+  // to figure out how to parse & process the payload.
+  string message_type = 7;
+
+  ///////////////////////// end  Envelope /////////////////////////////////////
+
+  ///////////////////////////// Payload ///////////////////////////////////////
+  // The message payload to be delivered to the target device. The payload is 
+  // opaque to the scheduler and is not interpreted by it in any way.
+  bytes payload = 8;
+}

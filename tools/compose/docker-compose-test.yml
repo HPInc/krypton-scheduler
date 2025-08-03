@@ -1,0 +1,34 @@
+version: '3'
+services:
+  scheduler-test:
+    image: ghcr.io/hpinc/krypton/krypton-go-builder
+    hostname: ${TEST}.${DOMAIN}
+    container_name: ${TEST}.${DOMAIN}
+    networks:
+      backend:
+        aliases:
+          - ${TEST}.${DOMAIN}
+    environment:
+      - SCHEDULER_DB_HOSTS=${DB}.${DOMAIN}
+      - SCHEDULER_DB_PASSWORD=${CASSANDRA_PASSWORD}
+      - SCHEDULER_DB_SCHEMA_LOCATION=/go/src/krypton-scheduler/service/db/schema
+      - SCHEDULER_QUEUE_ENDPOINT=http://${SQS}.${DOMAIN}:${SQS_PORT}
+      - SCHEDULER_MQTT_BROKER_HOSTS=tcp://${HIVEMQ_HOST}.${DOMAIN}:${HIVEMQ_MQTT_PORT}
+      - SCHEDULER_MQTT_BROKER_TYPE="local"
+      - SCHEDULER_DSTS_HOST=${DSTS}.${DOMAIN}
+      - TEST_MODE="enabled"
+      - SCHEDULER_CONFIG_LOCATION=/go/src/krypton-scheduler/service/config/config.yaml
+      - SCHEDULER_REGISTERED_SERVICE_CONFIG_FILE=/go/src/krypton-scheduler/service/config/registered_services.yaml
+      - AWS_ACCESS_KEY_ID="local"
+      - AWS_SECRET_ACCESS_KEY="local"
+      - AWS_REGION=${REGION}
+    env_file:
+      - privateKey.env
+    volumes:
+      - ../../../krypton-scheduler:/go/src/krypton-scheduler
+    working_dir: /go/src/krypton-scheduler
+    command: make unit-test
+    tty: true
+networks:
+  backend:
+    driver: bridge

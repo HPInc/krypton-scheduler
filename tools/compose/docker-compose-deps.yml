@@ -1,0 +1,107 @@
+
+services:
+  cassandra:
+    image: krypton-sched-db
+    hostname: ${DB}.${DOMAIN}
+    container_name: ${DB}.${DOMAIN}
+    ports:
+      - '7000:7000'
+      - '9042:9042'
+    networks:
+      backend:
+        aliases:
+          - ${DB}.${DOMAIN}
+    healthcheck:
+      test: [ "CMD", "/opt/bitnami/cassandra/bin/cqlsh", "-u cassandra", "-p cassandra" ,"-e \"describe keyspaces\"" ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    environment:
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_PASSWORD=${CASSANDRA_PASSWORD}
+  sqs:
+    image: ghcr.io/hpinc/krypton/krypton-local-sqs
+    hostname: ${SQS}.${DOMAIN}
+    container_name: ${SQS}.${DOMAIN}
+    ports:
+      - ${SQS_PORT}:${SQS_PORT}
+      - ${SQS_ADMIN_PORT}:${SQS_ADMIN_PORT}
+    networks:
+      backend:
+        aliases:
+          - ${SQS}.${DOMAIN}
+    volumes:
+      - ./elasticmq.conf:/opt/elasticmq.conf:ro
+    tty: true
+  broker:
+    image: hivemq/hivemq4
+    hostname: ${HIVEMQ_HOST}.${DOMAIN}
+    container_name: ${HIVEMQ_HOST}.${DOMAIN}
+    ulimits:
+      nofile:
+        soft: "1000000"
+        hard: "1000000"
+    ports:
+     - ${HIVEMQ_MQTT_PORT}:${HIVEMQ_MQTT_PORT}
+     - ${HIVEMQ_WEBSOCKETS_PORT}:${HIVEMQ_WEBSOCKETS_PORT}
+     - ${HIVEMQ_CONTROL_CENTER_PORT}:${HIVEMQ_CONTROL_CENTER_PORT}
+    networks:
+      backend:
+        aliases:
+          - ${HIVEMQ_HOST}.${DOMAIN}
+    tty: true
+  dsts:
+    image: ghcr.io/hpinc/krypton/krypton-dsts
+    hostname: ${DSTS}.${DOMAIN}
+    container_name: ${DSTS}.${DOMAIN}
+    networks:
+      backend:
+        aliases:
+          - ${DSTS}.${DOMAIN}
+    environment:
+      - GO_DEBUG=${GO_DEBUG}
+      - GRPC_GO_SEVERITY_LEVEL=${GRPC_GO_LOG_SEVERITY_LEVEL}
+      - GRPC_GO_LOG_VERBOSITY_LEVEL=${GRPC_GO_LOG_VERBOSITY_LEVEL}
+      - GRPC_TRACE=${GRPC_TRACE}
+      - DSTS_DB_HOST=${DSTS_DB}.${DOMAIN}
+      - DSTS_DB_PASSWORD=${DSTS_DB_PASSWORD}
+      - DSTS_CACHE_HOST=${DSTS_CACHE}.${DOMAIN}
+      - DSTS_CACHE_PORT=${DSTS_CACHE_PORT}
+      - DSTS_CACHE_PASSWORD=${DSTS_CACHE_PASSWORD}
+      - DSTS_APP_SCHEDULER_KEY_FILE=/tmp/publicKey.pem
+      - TEST_MODE=enabled
+    depends_on:
+      - dstsdb
+      - dstscache
+    volumes:
+      - ./publicKey.pem:/tmp/publicKey.pem:ro
+    tty: true
+  dstsdb:
+    image: ghcr.io/hpinc/krypton/krypton-db
+    hostname: ${DSTS_DB}.${DOMAIN}
+    container_name: ${DSTS_DB}.${DOMAIN}
+    networks:
+      backend:
+        aliases:
+          - ${DSTS_DB}.${DOMAIN}
+    environment:
+      - POSTGRES_DB=${DSTS_DB_NAME}
+      - POSTGRES_USER=${DSTS_DB_USER}
+      - POSTGRES_PASSWORD=${DSTS_DB_PASSWORD}
+    tty: true
+  dstscache:
+    image: ghcr.io/hpinc/krypton/krypton-cache
+    hostname: ${DSTS_CACHE}.${DOMAIN}
+    container_name: ${DSTS_CACHE}.${DOMAIN}
+    networks:
+      backend:
+        aliases:
+          - ${DSTS_CACHE}.${DOMAIN}
+    environment:
+      - CACHE_PASSWORD=${DSTS_CACHE_PASSWORD}
+    depends_on:
+      - dstsdb
+    tty: true
+networks:
+  backend:
+    driver: bridge
